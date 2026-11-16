@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronic Kidney Disease Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <header class="topbar">
+        <a class="brand" href="{{ url_for('home') }}">
+            <span class="brand-icon">&#43;</span>
+            <span>Chronic Kidney Disease Prediction</span>
+        </a>
+
+        <div class="top-actions">
+            <span class="mesh-status"><i></i> Federated Mesh</span>
+
+            <button class="top-button" type="button" onclick="window.print()">▤ &nbsp; Print</button>
+
+            <div class="doctor">
+                <span class="avatar">{{ (user_name or 'U')[0]|upper }}</span>
+                <span>
+                    <strong>{{ user_name or 'Clinician' }}</strong>
+                    <!--<small>Nephrology &amp; Renal Medicine</small>-->
+                </span>
+            </div>
+
+            <form method="post" action="{{ url_for('logout') }}">
+                <button class="top-button signout" type="submit">⇥ &nbsp; Sign Out</button>
+            </form>
+        </div>
+    </header>
+    <main class="workspace">
+
+        <section class="intake-panel panel">
+
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">INTAKE CONSOLE</span>
+                    <h1>Patient Clinical Markers</h1>
+                </div>
+
+                <div class="heading-tools">
+                    <select id="sampleCase" aria-label="Sample case">
+                        <option value="">Sample Case</option>
+                        <option value="ckd">CKD sample</option>
+                        <option value="healthy">Not CKD sample</option>
+                    </select>
+
+                    <div class="configured">
+                        <strong id="configuredCount">0 / 24 Configured</strong>
+                        <span><i id="configuredBar"></i></span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="tabs" aria-label="Patient information sections">
+                <button class="tab active" type="button" data-tab="0">♧ &nbsp; Vitals &amp; Demographics <b>2</b></button>
+                <button class="tab" type="button" data-tab="1">🧪 &nbsp; Renal &amp; Urinalysis <b>7</b></button>
+                <button class="tab" type="button" data-tab="2">♦ &nbsp; Hematology &amp; Urine Bio <b>9</b></button>
+                <button class="tab" type="button" data-tab="3">▤ &nbsp; Clinical History <b>6</b></button>
+            </nav>
+
+            <form id="predictionForm">
+
+                <div class="tab-content active" data-panel="0">
+                    <div class="category">
+                        <strong>Category 1: Baseline Demographics &amp; Hemodynamics</strong>
+                        <small>Core demographic factors and cardiovascular pressure</small>
+                    </div>
+
+                    <div class="fields two">
+                        <div class="field">
+                            <label for="age">Patient Age <code>age</code></label>
+                            <div class="input-unit">
+                                <input id="age" type="number" min="1" max="120" required placeholder="Enter age">
+                                <span>years</span>
+                            </div>
+                            <small>Ref Range: 18 – 85 yrs</small>
+                        </div>
+                    <div class="field">
+                      <label for="gender">Gender</label>
+                      <select id="gender">
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                      </select>
+                  </div>
+                        <div class="field">
+                            <label for="bp">Blood Pressure <code>bp</code></label>
+                            <div class="input-unit">
+                                <input id="bp" type="number" min="1" required placeholder="Enter blood pressure">
+                                <span>mm/Hg</span>
+                            </div>
+                            <small>Ref Range: 80 – 120 mm/Hg</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" data-panel="1" hidden>
+                    <div class="category">
+                        <strong>Category 2: Renal Panel &amp; Urine Chemistry</strong>
+                        <small>Metabolic biomarkers of glomerular filtration rate (GFR) and electrolyte balance</small>
+                    </div>
+
+                    <div class="fields two">
+                        <div class="field">
+                            <label for="sc">Serum Creatinine <b class="star">★</b><code>sc</code></label>
+                            <div class="input-unit">
+                                <input id="sc" type="number" step="0.1" min="0" required placeholder="Enter value">
+                                <span>mg/dL</span>
+                            </div>
+                            <small>Ref Range: 0.6 – 1.2 mg/dL</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="bu">Blood Urea <code>bu</code></label>
+                            <div class="input-unit">
+                                <input id="bu" type="number" step="0.1" min="0" required placeholder="Enter value">
+                                <span>mg/dL</span>
+                            </div>
+                            <small>Ref Range: 15 – 40 mg/dL</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="sg">Specific Gravity <code>sg</code></label>
+                            <div class="input-unit">
+                                <input id="sg" type="number" step="0.001" min="0" required placeholder="e.g. 1.020">
+                                <span>SG</span>
+                            </div>
+                            <small>Ref Range: 1.010 – 1.025</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="al">Albuminuria <code>al</code></label>
+                            <div class="input-unit">
+                                <input id="al" type="number" min="0" max="5" required placeholder="0 to 5">
+                                <span>scale 0–5</span>
+                            </div>
+                            <small>0 = Nil, 1–5 = Proteinuria</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="su">Urine Sugar <code>su</code></label>
+                            <div class="input-unit">
+                                <input id="su" type="number" min="0" max="5" required placeholder="0 to 5">
+                                <span>scale 0–5</span>
+                            </div>
+                            <small>0 = Nil, 1–5 = Glucosuria</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="sod">Serum Sodium <code>sod</code></label>
+                            <div class="input-unit">
+                                <input id="sod" type="number" step="0.1" min="0" required placeholder="Enter value">
+                                <span>mEq/L</span>
+                            </div>
+                            <small>Ref Range: 135 – 145 mEq/L</small>
+                        </div>
+
+                        <div class="field">
+                            <label for="pot">Serum Potassium <code>pot</code></label>
+                            <div class="input-unit">
+                                <input id="pot" type="number" step="0.1" min="0" required placeholder="Enter value">
+                                <span>mEq/L</span>
+                            </div>
+                            <small>Ref Range: 3.5 – 5.0 mEq/L</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" data-panel="2" hidden>
+                    <div class="category">
+                        <strong>Category 3: Hematology &amp; Urine Bio</strong>
+                        <small>Blood cell counts, hemoglobin and urine microscopy observations</small>
+                    </div>
+
+                    <div class="fields two">
+                        <div class="field">
+                            <label for="bgr">Blood Glucose Random <code>bgr</code></label>
+                            <div class="input-unit">
+                                <input id="bgr" type="number" min="0" required>
+                                <span>mg/dL</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="hemo">Hemoglobin <code>hemo</code></label>
+                            <div class="input-unit">
+                                <input id="hemo" type="number" step="0.1" min="0" required>
+                                <span>g/dL</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="pcv">Packed Cell Volume <code>pcv</code></label>
+                            <div class="input-unit">
+                                <input id="pcv" type="number" step="0.1" min="0" required>
+                                <span>%</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="wbcc">White Blood Cell Count <code>wbcc</code></label>
+                            <div class="input-unit">
+                                <input id="wbcc" type="number" min="0" required>
+                                <span>cells/cmm</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="rbcc">Red Blood Cell Count <code>rbcc</code></label>
+                            <div class="input-unit">
+                                <input id="rbcc" type="number" step="0.1" min="0" required>
+                                <span>millions/cmm</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label for="rbc">Red Blood Cells <code>rbc</code></label>
+                            <select id="rbc" required>
+                                <option value="">Select</option>
+                                <option value="normal">Normal</option>
+                                <option value="abnormal">Abnormal</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="pc">Pus Cells <code>pc</code></label>
+                            <select id="pc" required>
+                                <option value="">Select</option>
+                                <option value="normal">Normal</option>
+                                <option value="abnormal">Abnormal</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="pcc">Pus Cell Clumps <code>pcc</code></label>
+                            <select id="pcc" required>
+                                <option value="">Select</option>
+                                <option value="present">Present</option>
+                                <option value="notpresent">Not present</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="ba">Bacteria <code>ba</code></label>
+                            <select id="ba" required>
+                                <option value="">Select</option>
+                                <option value="present">Present</option>
+                                <option value="notpresent">Not present</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" data-panel="3" hidden>
+                    <div class="category">
+                        <strong>Category 4: Clinical History</strong>
+                        <small>Existing conditions and patient-reported clinical observations</small>
+                    </div>
+
+                    <div class="fields two">
+                        <div class="field">
+                            <label for="htn">Hypertension <code>htn</code></label>
+                            <select id="htn" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="dm">Diabetes Mellitus <code>dm</code></label>
+                            <select id="dm" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="cad">Coronary Artery Disease <code>cad</code></label>
+                            <select id="cad" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="appet">Appetite <code>appet</code></label>
+                            <select id="appet" required>
+                                <option value="">Select</option>
+                                <option value="good">Good</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="pe">Pedal Edema <code>pe</code></label>
+                            <select id="pe" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="ane">Anemia <code>ane</code></label>
+                            <select id="ane" required>
+                                <option value="">Select</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <div>
+                        <button type="button" class="secondary-button" id="backTab">← Back</button>
+                        <button type="button" class="secondary-button" id="nextTab">Next Tab →</button>
+                    </div>
+
+                    <div class="submit-actions">
+                        <button type="reset" class="secondary-button">Clear</button>
+                        <button type="submit" class="primary-button" id="predictButton">✓ &nbsp; Predict CKD Risk</button>
+                    </div>
+                </div>
+
+            </form>
+        </section>
+
+        <aside class="results-column">
+
+            <section class="panel assessment-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">DIAGNOSTIC INFERENCE</span>
+                        <h2>Model Assessment</h2>
+                    </div>
+                    <span class="model-tag">Global Aggregated Model</span>
+                </div>
+
+                <div class="classification" id="classification">
+                    <span class="classification-icon" id="classificationIcon">i</span>
+                    <div>
+                        <span class="eyebrow">CLINICAL CLASSIFICATION</span>
+                        <h2 id="predictionResult">Awaiting Assessment</h2>
+                        <p id="classificationText">Populate clinical markers and click Predict CKD Risk.</p>
+                    </div>
+                </div>
+
+                <div class="risk-content">
+
+                    <div class="risk-gauge">
+                        <div class="gauge" id="riskGauge">
+                            <div>
+                                <strong id="riskScore">--%</strong>
+                                <small>CKD RISK SCORE</small>
+                            </div>
+                        </div>
+                        <span class="risk-label" id="riskLabel">Risk Undetermined</span>
+                    </div>
+
+                    <div class="probabilities">
+                        <div class="probability-card">
+                            <span class="legend red"></span>
+                            <span>CKD Probability</span>
+                            <strong id="ckdProbability">--</strong>
+                            <div class="bar"><i id="ckdBar"></i></div>
+                        </div>
+
+                        <div class="probability-card">
+                            <span class="legend green"></span>
+                            <span>Not CKD Probability</span>
+                            <strong id="notCkdProbability">--</strong>
+                            <div class="bar"><i id="notCkdBar"></i></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="recommendation">
+                    <b>▤ &nbsp; Model Information</b>
+                    <p id="recommendationText">Run a prediction to view the model output and its SHAP feature contributions.</p>
+                </div>
+
+            </section>
+
+            <section class="panel shap-panel">
+
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">EXPLAINABLE AI</span>
+                        <h2>SHAP Feature Attribution</h2>
+                    </div>
+
+                    <div class="legend-labels">
+                        <span><i class="red"></i> Supports CKD</span>
+                        <span><i class="green"></i> Supports Healthy</span>
+                    </div>
+                </div>
+
+                <p class="shap-intro">SHAP values show how each clinical feature influenced this model prediction.</p>
+
+                <div id="xaiPlaceholder" class="empty-state">Feature contributions will appear after prediction.</div>
+
+                <div class="shap-list" id="xaiResult" hidden></div>
+
+            </section>
+
+        </aside>
+
+    </main>
+
+    <footer>
+        CKD Federated Learning &amp; Explainable AI · Academic research prototype · Not a medical diagnosis
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+    window.addEventListener("beforeprint", function () {
+        const gender = document.getElementById("gender");
+        const selectedGender = gender ? gender.value : "";
+
+        document.getElementById("printGender").textContent =
+            selectedGender || "Not specified";
+    });
+</script>
+
+</body>
+</html>

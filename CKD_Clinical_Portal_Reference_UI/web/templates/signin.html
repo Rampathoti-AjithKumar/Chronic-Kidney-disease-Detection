@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | CKD Prediction</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='auth.css') }}">
+
+    <script src="{{ url_for('static', filename='auth.js') }}" defer></script>
+</head>
+
+<body>
+
+<main class="auth-card">
+
+    <div class="auth-brand">
+        <div class="auth-logo">+</div>
+        <h1>Chronic Kidney Disease Prediction</h1>
+        <p>Clinical Decision Support Portal</p>
+    </div>
+
+    <nav class="auth-tabs">
+        <a class="active" href="{{ url_for('signin') }}">Sign In</a>
+        <a href="{{ url_for('signup') }}">Register Account</a>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <form class="auth-form"
+          method="POST"
+          action="{{ url_for('signin') }}">
+
+        <label for="email">Email Address</label>
+
+        <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="doctor@hospital.org"
+            autocomplete="email"
+            required
+        >
+
+        <label for="password">Password</label>
+
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+        >
+
+        <div class="remember-row">
+            <label>
+                <input type="checkbox" id="remember" name="remember">
+                Remember Me
+            </label>
+        </div>
+
+        <button type="submit">Sign In to Clinical System</button>
+
+    </form>
+
+    <p class="auth-switch">
+        New user?
+        <a href="{{ url_for('signup') }}">Create an account</a>
+    </p>
+
+    <p class="auth-note">
+        Secure Clinical Access · Research Prototype
+    </p>
+
+</main>
+
+</body>
+</html>
